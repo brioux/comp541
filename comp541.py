@@ -1,23 +1,22 @@
 #  DFIN 541 mini bitcoin project
-# A simple python script for recording string srgument on the bitcoin blockchain
-# Uses python
+# A simple python 3.5 script for recording a string argument on the bitcoin blockchain
+# Requires python-bitcoinrpc library
 from decimal import *
 from bitcoin import *
 # to convert string to hexadecimal
 from binascii import *
-# Import Python library for Bitcoins API calls
-# 
+# Import Python bitcoinrpc library for Bitcoins API calls
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
-#  For loading environment variables in python
+# For loading environment variables in python
 import os
 
-# Setup RPC connection to send Bitcoin API calls
-# rpcuser rpcpassword are asssumed to have been stored in users environment variables
+# Setup RPC connection to send Bitcoin API calls to server
+# collect rpcuser and rpcpassword asssumed to have been stored in user's environment variables
 rpcuser = os.getenv("RPCUSER")
 rpcpassword = os.getenv("RPCPASS")
 rpc_connection = AuthServiceProxy("http://%s:%s@127.0.0.1:18332"%(rpcuser,rpcpassword))
 
-# String argument to store on the blockchain
+# Enter string argument to store on the blockchain
 string = input('Type a message to store on the blockchain: ')
 # Convert to hexadecimal format
 hex = hexlify(string.encode())
@@ -25,11 +24,11 @@ hex = hexlify(string.encode())
 #  print('data hex: '+hex.decode())
 #  print('string: '+string.decode())
 
-# Get list of unspent transactions
-unspent = rpc_connection.listunspent()
-
 # Calculate a transaction relay fee (0.0001)
 tx_fee = Decimal(1)/Decimal(10000)
+
+# Get list of unspent transactions
+unspent = rpc_connection.listunspent()
 
 # Loop over unspent transactions
 i = 0
@@ -38,23 +37,21 @@ while i < len(unspent):
 # Get amount listed unpent transaction
  amount=unspent[i]['amount']
 # If balance is greater than fee proceed to create raw transaction
-# A dumb function for selecting transaction inputs!
+# (not so smart function for selecting transaction inputs!)
  if amount > tx_fee:
 
-#  print("amount: "+str(amount))
-#  print("address: "+unspent[i]['address']) 
-
-# Get Transaction id and output of unspent transaction
+# Get Transaction id and output # of unspent transaction
   txid = unspent[i]['txid']
   vout = unspent[i]['vout']
 
-# Remove the fee from the unspent transaction balance, to be returned to the senders change_address
+# Remove the fee from the unspent transaction balance. 
+# The remainder is returned to the senders change_address
   amount = amount - tx_fee
   change_address=rpc_connection.getrawchangeaddress()
 
 # New transaction input
   input = [{"txid": txid, "vout": vout}]
-# New transaction output including amount sent to change adress and the hexadecimal string
+# New transaction output including amount sent to change_address and the hexadecimal string
   output = {change_address : amount, "data": hex.decode()}
 
 # Create unsigned transaction
