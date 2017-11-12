@@ -20,9 +20,9 @@ rpc_connection = AuthServiceProxy("http://%s:%s@127.0.0.1:18332"%(rpcuser,rpcpas
 string = input('Type a message to store on the blockchain: ')
 # Convert to hexadecimal format
 hex = hexlify(string.encode())
-#  string = unhexlify(b"%s"%(hex))
-#  print('data hex: '+hex.decode())
-#  print('string: '+string.decode())
+string = unhexlify(b"%s"%(hex))
+print('data hex: '+hex.decode())
+print('string: '+string.decode())
 
 # Calculate a transaction relay fee (0.0001)
 tx_fee = Decimal(1)/Decimal(10000)
@@ -64,8 +64,14 @@ while i < len(unspent):
   signed_tx = rpc_connection.signrawtransaction(raw_tx)
   status = rpc_connection.sendrawtransaction(signed_tx["hex"])
 
-#  decoded = rpc_connection.decoderawtransaction(signed_tx["hex"])
-#  print("decoded_tx: "+str(decoded))
+# print the decoded transaction
+  decoded = rpc_connection.decoderawtransaction(signed_tx["hex"])
+  if signed_tx['complete']:
+   print("status: complete")
+   print("tx info: "+str(decoded))
+  else:
+   print("error: "+signed_tx['error'])
+
 #  stop the while loop
   break
  else:
